@@ -1,3 +1,9 @@
+// // must be listed before other Firebase SDKs
+// import firebase from "firebase/app";
+
+// // Add the Firebase services that you want to use
+// import "firebase/auth";
+// import "firebase/firestore";
 
 // css & image
 // import 'animate.css/animate.css'
@@ -18,7 +24,10 @@ import ProvinceJSON_to from './data/provinces.json'
 
 
 // library
-import React, { useState } from 'react';
+import React, { useState ,useRef} from 'react';
+// import db from './Firestore';
+import { PageHeader, Descriptions } from 'antd';
+import firebase from 'firebase';
 import { Layout } from 'antd';
 import { Typography, Space } from 'antd';
 import { Row, Col, Divider } from 'antd';
@@ -30,12 +39,16 @@ import { Comment, Avatar } from 'antd';
 import { Form, Input, Radio} from 'antd';
 import axios from 'axios';
 import { Spin } from 'antd';
-import { CheckOutlined, CloseOutlined ,DownOutlined} from '@ant-design/icons';
+import { CheckOutlined, CloseOutlined ,DownOutlined,LoadingOutlined,PlusOutlined,CameraOutlined} from '@ant-design/icons';
 import moment from 'moment'
 import { AutoComplete ,notification } from 'antd';
 import QRCode  from 'qrcode.react'
 import { connect } from 'react-redux';
 import { setzone } from './reducers/actions';
+import Camera from 'react-html5-camera-photo';
+import 'react-html5-camera-photo/build/css/index.css';
+import Webcam from "react-webcam";
+import { Upload, message } from 'antd';
 
 // import { Tabs } from 'antd';
 // import { BigNumber } from "bignumber.js";
@@ -51,9 +64,60 @@ const radioStyle = {
   lineHeight: '30px',
 };
 
+const videoConstraints = {
+  width: 480,
+  height: 480,
+  facingMode: "user"
+};
 
 function App(props) {
 
+  // firebase
+  const db = firebase.firestore();
+
+  // console.log(db.collection('checkin_songkhla').get())
+  // db.collection("users").get().then((querySnapshot) => {
+  //   querySnapshot.forEach((doc) => {
+  //       console.log(`${doc.id} => ${doc.data()}`);
+  //   })
+  // })
+
+  // Create a reference to the cities collection
+  var citiesRef = db.collection("users");
+
+  // Create a query against the collection.
+  var query = citiesRef.where("role", "==", "admin");
+
+  var dd = db.collection("checkin_songkhla").get()
+  .then((querySnapshot) => {
+    return querySnapshot.docs.map(doc => Object.assign(doc.data(), {id: doc.id})) //ES6
+      // querySnapshot.forEach((doc) => {
+      //     // doc.data() is never undefined for query doc snapshots
+      //     console.log(doc.id, " => ", doc.data());
+      // });
+  })
+  .catch((error) => {
+      console.log("Error getting documents: ", error);
+  });
+
+  // var tt = dd.then(result => result.data);
+  console.log(dd)
+
+  // db.collection("cities").where("capital", "==", true)
+  //   .get()
+  //   .then((querySnapshot) => {
+  //       querySnapshot.forEach((doc) => {
+  //           // doc.data() is never undefined for query doc snapshots
+  //           console.log(doc.id, " => ", doc.data());
+  //       });
+  //   })
+  //   .catch((error) => {
+  //       console.log("Error getting documents: ", error);
+  //   });
+
+
+
+  const [loadingimg,setloadingimg] = useState(false) 
   const [form] = Form.useForm()
   const [type, settype] = useState(null)
   const [isModalVisible, setIsModalVisible] = useState(true);
@@ -68,12 +132,32 @@ function App(props) {
   const [select_District_from,setselect_District_from] = useState([])
   const [select_District_to,setselect_District_to] = useState([])
   const [encode,setencode] = useState('')
+  const [img,setimg] = useState(null)
 
   const Amphures_from = AmphuresJSON
   const Province_from = ProvinceJSON
 
   const Amphures_to = AmphuresJSON_to
   const Province_to = ProvinceJSON_to
+
+  const webcamRef = React.useRef(null);
+
+
+  function getBase64(img, callback) {
+    const reader = new FileReader();
+    reader.addEventListener('load', () => callback(reader.result));
+    reader.readAsDataURL(img);
+  }
+  
+
+  // function getBase64(file) {
+  //   return new Promise((resolve, reject) => {
+  //     const reader = new FileReader();
+  //     reader.readAsDataURL(file);
+  //     reader.onload = () => resolve(reader.result);
+  //     reader.onerror = error => reject(error);
+  //   });
+  // }
 
   const downloadQR = () => {
     var time = moment().format('DDMMYYHHmm')
@@ -95,36 +179,60 @@ function App(props) {
       var body = {}
       if(value === 0){
           body = {
-            firstname: form.getFieldValue('Firstname'),
-            lastname: form.getFieldValue('Lastname'),
-            passport: form.getFieldValue('citizen'),
-            tel: form.getFieldValue('tel'),
-            from_sd: form.getFieldValue('subdistrictsfrom'),
-            from_d: form.getFieldValue('districtsfrom'),
-            from_p: form.getFieldValue('provincefrom'),
-            to_sd: form.getFieldValue('subdistrictsto'),
-            to_d: form.getFieldValue('districtsto'),
-            to_p: form.getFieldValue('provinceto'),
+            firstname: form.getFieldValue('Firstname') || null,
+            lastname: form.getFieldValue('Lastname') || null,
+            passport: form.getFieldValue('citizen') || null,
+            tel: form.getFieldValue('tel') || null,
+            from_sd: form.getFieldValue('subdistrictsfrom') || null,
+            from_d: form.getFieldValue('districtsfrom') || null,
+            from_p: form.getFieldValue('provincefrom') || null,
+            to_sd: form.getFieldValue('subdistrictsto') || null,
+            to_d: form.getFieldValue('districtsto') || null,
+            to_p: form.getFieldValue('provinceto') || null,
             date: time,
             type_travel: nametype,
-            nocar:`${form.getFieldValue('nocar')}-${form.getFieldValue('nocar1')}`
+            nocar:`${form.getFieldValue('nocar')}-${form.getFieldValue('nocar1')}`|| null,
+            img:img
           }
+
+          db.collection("checkin_songkhla")
+          .doc()
+          .set(body)
+          .then(function () {
+          console.log("Value successfully written!");
+          })
+          .catch(function (error) {
+          console.error("Error writing Value: ", error);
+          });
       }else if(value ===1){
           body = {
-            firstname: form.getFieldValue('Firstname'),
-            lastname: form.getFieldValue('Lastname'),
-            passport: form.getFieldValue('passport'),
-            tel: form.getFieldValue('tel'),
-            from_sd: form.getFieldValue('subdistrictsfrom'),
-            from_d: form.getFieldValue('districtsfrom'),
-            from_p: form.getFieldValue('provincefrom'),
-            to_sd: form.getFieldValue('subdistrictsto'),
-            to_d: form.getFieldValue('districtsto'),
-            to_p: form.getFieldValue('provinceto'),
+            firstname: form.getFieldValue('Firstname')|| null,
+            lastname: form.getFieldValue('Lastname')|| null,
+            passport: form.getFieldValue('passport')|| null,
+            tel: form.getFieldValue('tel')|| null,
+            from_sd: form.getFieldValue('subdistrictsfrom')|| null,
+            from_d: form.getFieldValue('districtsfrom')|| null,
+            from_p: form.getFieldValue('provincefrom')|| null,
+            to_sd: form.getFieldValue('subdistrictsto')|| null,
+            to_d: form.getFieldValue('districtsto')|| null,
+            to_p: form.getFieldValue('provinceto')|| null,
             date: time,
             type_travel: nametype,
-            nocar:`${form.getFieldValue('nocar')}-${form.getFieldValue('nocar1')}`
+            nocar:`${form.getFieldValue('nocar')}-${form.getFieldValue('nocar1')}`|| null,
+            img:img
           }
+
+
+          db.collection("checkin_songkhla")
+          // .doc()
+          .add(body)
+          .then(function () {
+          console.log("Value successfully written!");
+          })
+          .catch(function (error) {
+          console.error("Error writing Value: ", error);
+          });
+
       }
 
       const options = {
@@ -133,33 +241,18 @@ function App(props) {
         },
       }
 
+      console.log(body)
+
+      console.log("test")
       setTimeout(() => {
         setload(false)
         setIsModalVisible_comfirm(true)
-        // if (res === 'OK') {
-        //   setIsModalVisible_comfirm(true)
-        // } else {
-        //   setIsModalVisible_error(true)
-        // }
+
 
       }, 2000);
-      // send data to database
-      // axios.post('https://songkhlakiosk.et.r.appspot.com/api/send', body,options).then(response => {
 
-      //   var res = response.data;
-      //   setTimeout(() => {
-      //     setload(false)
-      //     if (res === 'OK') {
-      //       setIsModalVisible_comfirm(true)
-      //     } else {
-      //       setIsModalVisible_error(true)
-      //     }
-
-      //   }, 2000);
-      //   return res
-      // })
     } catch (error) {
-      //console.error(error);
+      console.error(error);
       return false
     }
   }
@@ -173,7 +266,66 @@ function App(props) {
   }
 
   const send_data = async () => {
-    await isAuthenticated()
+    // await isAuthenticated()
+    var time = moment();
+      var body = {}
+      if(value === 0){
+        body = {
+          firstname: form.getFieldValue('Firstname') || null,
+          lastname: form.getFieldValue('Lastname') || null,
+          passport: form.getFieldValue('citizen') || null,
+          tel: form.getFieldValue('tel') || null,
+          from_sd: form.getFieldValue('subdistrictsfrom') || null,
+          from_d: form.getFieldValue('districtsfrom') || null,
+          from_p: form.getFieldValue('provincefrom') || null,
+          to_sd: form.getFieldValue('subdistrictsto') || null,
+          to_d: form.getFieldValue('districtsto') || null,
+          to_p: form.getFieldValue('provinceto') || null,
+          date: moment().format(),
+          type_travel: nametype,
+          nocar:`${form.getFieldValue('nocar')}-${form.getFieldValue('nocar1')}`,
+          img:img
+        }
+    }else if(value ===1){
+        body = {
+          firstname: form.getFieldValue('Firstname')|| null,
+          lastname: form.getFieldValue('Lastname')|| null,
+          passport: form.getFieldValue('passport')|| null,
+          tel: form.getFieldValue('tel')|| null,
+          from_sd: form.getFieldValue('subdistrictsfrom')|| null,
+          from_d: form.getFieldValue('districtsfrom')|| null,
+          from_p: form.getFieldValue('provincefrom')|| null,
+          to_sd: form.getFieldValue('subdistrictsto')|| null,
+          to_d: form.getFieldValue('districtsto')|| null,
+          to_p: form.getFieldValue('provinceto')|| null,
+          date: moment().format(),
+          type_travel: nametype,
+          nocar:`${form.getFieldValue('nocar')}-${form.getFieldValue('nocar1')}`,
+          img:img
+        }
+      }
+
+      db.collection("checkin_songkhla")
+      // .doc()
+      .add(body)
+      .then(function () {
+      console.log("Value successfully written!");
+      })
+      .catch(function (error) {
+      console.error("Error writing Value: ", error);
+      });
+
+      console.log(body)
+
+      console.log("test")
+      setTimeout(() => {
+        setload(false)
+        setIsModalVisible_comfirm(true)
+
+
+      }, 2000);
+
+    setimg(null)
     setmes("กำลังส่งข้อมูล....")
     setload(true)
   }
@@ -230,6 +382,9 @@ function App(props) {
 }
 
   const next =async () => {
+
+    // console.log("img: " , img)
+
     const re = /^[0-9\b]+$/;
 
     try {
@@ -254,32 +409,41 @@ function App(props) {
           }
 
           if (form.getFieldValue('Firstname') !== undefined && form.getFieldValue('Firstname') !== '' && 
-            form.getFieldValue('Lastname') !== undefined && form.getFieldValue('Lastname') !== '' &&
-            form.getFieldValue('citizen') !== undefined && form.getFieldValue('citizen') !== '' &&
-            form.getFieldValue('tel') !== undefined && re.test(form.getFieldValue('tel')) && parseInt(form.getFieldValue('tel'))!==0 && 
-            form.getFieldValue('tel').length === 10 && res === true ) {
-            setCurrent(current + 1);
+              form.getFieldValue('Lastname') !== undefined && form.getFieldValue('Lastname') !== '' &&
+              form.getFieldValue('citizen') !== undefined && form.getFieldValue('citizen') !== '' &&
+              form.getFieldValue('tel') !== undefined && re.test(form.getFieldValue('tel')) && parseInt(form.getFieldValue('tel'))!==0 && 
+              form.getFieldValue('tel').length === 10 && res === true && img !== null ) {
+              setCurrent(current + 1);
           }else if (form.getFieldValue('Firstname') !== undefined && form.getFieldValue('Firstname') !== '' && 
             form.getFieldValue('Lastname') !== undefined && form.getFieldValue('Lastname') !== '' &&
             form.getFieldValue('passport') !== undefined && form.getFieldValue('passport') !== '' &&
             form.getFieldValue('tel') !== undefined && re.test(form.getFieldValue('tel')) && parseInt(form.getFieldValue('tel'))!==0 && value===1 && form.getFieldValue('tel').length === 10
-          ) {
+            && img !== null ) {
             setCurrent(current + 1);
           } else {
+            if (img !== null) {
               error('กรุณากรอกข้อมูลให้ถูกต้อง')
+            }else{
+              error('กรุณาอัปโหลดรูปภาพ')
+            }
           }
         }else if(type ===1){
           if (form.getFieldValue('Firstname') !== undefined && form.getFieldValue('Firstname') !== '' && 
-            form.getFieldValue('tel') !== undefined && re.test(form.getFieldValue('tel'))&& parseInt(form.getFieldValue('tel'))!==0 && form.getFieldValue('tel').length == 10 ){
+            form.getFieldValue('tel') !== undefined && re.test(form.getFieldValue('tel'))&& parseInt(form.getFieldValue('tel'))!==0 && form.getFieldValue('tel').length == 10 && img !== null ){
               setCurrent(current + 1);
         }else if (form.getFieldValue('Firstname') !== undefined && form.getFieldValue('Firstname') !== '' && 
             form.getFieldValue('Lastname') !== undefined && form.getFieldValue('Lastname') !== '' &&
             form.getFieldValue('passport') !== undefined && form.getFieldValue('passport') !== '' &&
             form.getFieldValue('tel') !== undefined && re.test(form.getFieldValue('tel')) && parseInt(form.getFieldValue('tel'))!==0 &&value===1&& form.getFieldValue('tel').length == 10
-        ) {
+            && img !== null) {
           setCurrent(current + 1);
         } else {
-            error('กรุณากรอกข้อมูลให้ถูกต้อง')
+          if (img !== null) {
+              error('กรุณากรอกข้อมูลให้ถูกต้อง')
+          }else{
+            error('กรุณาอัปโหลดรูปภาพ')
+          }
+            
         }
 
         }
@@ -377,7 +541,6 @@ function App(props) {
     setIsModalVisible(false);
   };
 
-
   const selected_District_from =(e)=>{
     var id =0
     var i=0
@@ -421,10 +584,11 @@ function App(props) {
     return obj
   }
 
-
   const handletype = (type) => {
   if (type === null) {
+
     setmes("กำลังกลับสู่หน้าแรก....")
+    setimg(null)
     setload(true)
     setTimeout(() => {
         setload(false)
@@ -444,10 +608,47 @@ function App(props) {
         setnametype('เดินทางด้วยรถสารสาธารณะ')
       } else if (type === 4) {
         setnametype('เดินทางโดยรถส่วนตัว')
+      } else if (type === 5) {
+        setnametype('เดินทางโดยเรือ')
       }
   }
 
   }
+
+  const handleChange = info => {
+    setimg(null)
+
+    console.log(info)
+    if (info.file.type === 'image/jpeg' || info.file.type === 'image/png') {
+    let fileList = [...info.fileList];
+    fileList.forEach(function (file, index) {
+      let reader = new FileReader();
+      reader.onload = (e) => {
+        file.base64 = e.target.result;
+        setimg(e.target.result)
+      };
+      reader.readAsDataURL(file.originFileObj);
+    });
+    console.log(img)
+
+    console.log(info.fileList[0])
+    if (info.file.status === 'uploading') {
+      setloadingimg(true)
+      return;
+    }
+    if (info.file.status === 'done') {
+      // Get this url from response in real world.
+      getBase64(info.file.originFileObj, imageUrl =>
+        {
+
+        setloadingimg(false);
+        setimg(imageUrl);
+        }
+      );
+    }
+    }
+  };
+
 
   const steps = [
     {
@@ -498,6 +699,42 @@ function App(props) {
               <Input type='tel' pattern="[0-9]*" maxLength={10} className='bold' placeholder='กรุณากรอกเบอร์โทร / Phone number'  />
             </Form.Item>
           </Form>
+
+
+
+              <br/>
+              <Upload
+                  listType="picture"
+                  onChange = {handleChange}
+                  showUploadList = {false}
+                  beforeUpload={(file) => {
+                    console.log(file.type)
+                    if (file.type === 'image/jpeg' || file.type === 'image/png') {
+                        
+                    }else{
+                      message.error(`${file.name} is not a png file`);
+                    }
+                    return false
+                  }}
+              >
+                {/* <Form.Item label={<Text className='bold'>ถ่ายรูปบัตรประชาขน </Text>} name='tel' rules={[{ required: true, message: <Text className='bold' style={{ textAlign:'left',fontSize: '10px', color: 'red' }}>กรุณากรอกข้อมูลให้ถูกต้อง</Text> }]}> */}
+
+   
+                {img ? <img src={img} alt="avatar" style={{ width: '80%' }} /> : <>        
+                {loadingimg ? <LoadingOutlined /> : <CameraOutlined style={{fontSize:'30px'}} />}
+                        <div><Text className='bold'>ถ่ายรูปบัตรประชาขน / Take passport photo  </Text></div>
+                </>}
+
+                {/* </Form.Item> */}
+              </Upload>
+
+              <br/>
+              <br/>
+              <br/>
+            
+
+
+
 
         </>,
     },
@@ -633,11 +870,24 @@ function App(props) {
     <div className="App" >
       <Layout style={{ backgroundColor: 'white' }}>
 
+      {/* <PageHeader
+        ghost={false}
+        // onBack={() => window.history.back()}
+        className='bold'
+        // title="DIDA"
+        extra={[
+          <span>DIDA</span>,
+          <Button key="3">Admin</Button>,
+          <Button key="2">Operation</Button>
+        ]}
+      >
+      </PageHeader> */}
+
         <Content>
           <div>
             <Space direction="vertical">
               <Text></Text>
-              <img src={LogoSongklha} width="30%"></img>
+              {/* <img src={Logodrii} width="30%"></img> */}
               <Text type='primary'><Title level={3} className='bold'>แบบฟอร์มเข้าจังหวัดสงขลา</Title></Text>
               <Text><Title level={5} className='bold'>Songkhla Arrivals Form</Title></Text><br />
             </Space>
@@ -675,19 +925,28 @@ function App(props) {
                       </Card>
                     </Col>
                   </Row>
+                  <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }} style={{ textAlign: 'center' }}>
+                    <Col className="gutter-row" span={24}>
+                      <Card hoverable onClick={() => handletype(5)}>
+                        <Text><Title level={5} className='bold'>เดินทางโดยเรือ</Title></Text>
+                      </Card>
+                    </Col>
+                  </Row>
                 </Space>
               </div>
               :
               <>
-                <Content style={{ padding: "0% 5vw 0 5vw", marginBottom: '5%' }}>
-                  <Row align='middle' style={{ marginBottom: '5%' }}>
+                <Content style={{  marginBottom: '5%' }}>
+                  <Row align='middle' style={{ textAlign:'center',marginBottom: '5%' }}>
                     <Steps current={current} progressDot >
                       {steps.map(item => (
                         <Step key={item.title} title={item.title} />
                       ))}
                     </Steps>
                   </Row>
+                  <div style={{width:'95%',padding: "0% 5vw 0 5vw"}}>
                   {steps[current].content}
+                   </div>
                 </Content>
                 <Space direction="vertical" >
                   <div className="steps-action">
@@ -797,24 +1056,25 @@ function App(props) {
 
         </Content>
 
-        <Footer style={{ textAlign: 'center', marginTop: '5%',backgroundColor:'white' }}>
+        <Footer style={{ textAlign: 'center', marginTop: '3%',backgroundColor:'white' }}>
           <Divider></Divider>
-          <img src={LogoDR} width="100vh"></img>
+          {/* <img src={LogoDR} width="100vh"></img> */}
           &emsp;
           <img src={LogoHos} width="60vh"></img>
           &emsp;
-          <img src={Logoaot} width="80vh"></img>
-          &emsp;
-          <img src={Logodlt} width="55vh"></img>
-          &emsp;
-          <img src={Logotrain} width="65vh"></img>
-          <img src={Logodc} width="60vh"></img>
-          &emsp;
-          <img src={Logoppho} width="55vh"></img>
-          &emsp;
+          {/* <img src={Logoaot} width="80vh"></img> */}
+          {/* &emsp; */}
+          {/* <img src={Logodlt} width="55vh"></img> */}
+          {/* &emsp; */}
+          {/* <img src={Logotrain} width="65vh"></img> */}
+          {/* <img src={Logodc} width="60vh"></img> */}
+          {/* &emsp; */}
+          {/* <img src={Logoppho} width="55vh"></img> */}
+          {/* &emsp; */}
           <img src={Logodrii} width="200vh"></img>
           <Divider></Divider>
-          <Text className='regular' style={{color:'gray'}}>Vers1.3 </Text><br />
+          <Text className='regular' style={{color:'gray'}}>Vers1.0 </Text><br /><br />
+          {/* <Button type='primary' style={{width:'50%'}}>Admin</Button> */}
 
         </Footer>
       </Layout>

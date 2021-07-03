@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@craco/craco": "^5.9.0",
+    "@react-firebase/firestore": "^0.5.5",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
     "@testing-library/user-event": "^7.2.1",
@@ -15,6 +16,7 @@
     "bignumber.js": "^9.0.1",
     "craco-less": "^1.17.1",
     "d3-ease": "^2.0.0",
+    "firebase": "^8.7.0",
     "gojs": "^2.1.33",
     "jthailand": "^1.0.0",
     "prop-types": "^15.7.2",
@@ -23,6 +25,7 @@
     "react": "^17.0.1",
     "react-devtools": "^3.6.3",
     "react-dom": "^16.14.0",
+    "react-html5-camera-photo": "^1.5.4",
     "react-i18next": "^11.8.5",
     "react-redux": "^7.2.2",
     "react-scripts": "3.4.3",
@@ -31,6 +34,7 @@
     "react-thailand-address-autocomplete": "0.0.6",
     "react-thailand-address-typeahead": "^1.0.1",
     "react-tree-graph": "^5.1.0",
+    "react-webcam": "^5.2.4",
     "redux": "^4.0.5",
     "redux-logger": "^3.0.6",
     "thai-id-validator": "^1.1.0"
