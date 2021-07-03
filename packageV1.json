@@ -1,0 +1,59 @@
+{
+  "name": "project-born",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@craco/craco": "^5.6.4",
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.5.0",
+    "@testing-library/user-event": "^7.2.1",
+    "animate.css": "^4.1.1",
+    "animate.css-react": "^1.1.0",
+    "antd": "^4.6.2",
+    "axios": "^0.21.1",
+    "bignum": "^0.13.1",
+    "bignumber.js": "^9.0.1",
+    "craco-less": "^1.17.0",
+    "d3-ease": "^2.0.0",
+    "gojs": "^2.1.26",
+    "jthailand": "^1.0.0",
+    "prop-types": "^15.7.2",
+    "qrcode.react": "^1.0.1",
+    "rc-scroll-anim": "^2.7.5",
+    "react": "^16.14.0",
+    "react-devtools": "^3.6.3",
+    "react-dom": "^16.13.1",
+    "react-i18next": "^11.7.3",
+    "react-redux": "^7.2.2",
+    "react-scripts": "3.4.3",
+    "react-spring": "^8.0.27",
+    "react-thai-address": "^1.0.2",
+    "react-thailand-address-autocomplete": "0.0.6",
+    "react-thailand-address-typeahead": "^1.0.1",
+    "react-tree-graph": "^5.1.0",
+    "redux": "^4.0.5",
+    "redux-logger": "^3.0.6",
+    "thai-id-validator": "^1.1.0"
+  },
+  "scripts": {
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

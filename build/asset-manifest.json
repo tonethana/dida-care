@@ -1,0 +1,35 @@
+{
+  "files": {
+    "main.css": "/static/css/main.213a05ba.chunk.css",
+    "main.js": "/static/js/main.6acd5bd5.chunk.js",
+    "main.js.map": "/static/js/main.6acd5bd5.chunk.js.map",
+    "runtime-main.js": "/static/js/runtime-main.45a42a84.js",
+    "runtime-main.js.map": "/static/js/runtime-main.45a42a84.js.map",
+    "static/css/2.95c16709.chunk.css": "/static/css/2.95c16709.chunk.css",
+    "static/js/2.eae4ddee.chunk.js": "/static/js/2.eae4ddee.chunk.js",
+    "static/js/2.eae4ddee.chunk.js.map": "/static/js/2.eae4ddee.chunk.js.map",
+    "index.html": "/index.html",
+    "precache-manifest.405a02f0b3bca19724bcf14b6ce93682.js": "/precache-manifest.405a02f0b3bca19724bcf14b6ce93682.js",
+    "service-worker.js": "/service-worker.js",
+    "static/css/2.95c16709.chunk.css.map": "/static/css/2.95c16709.chunk.css.map",
+    "static/css/main.213a05ba.chunk.css.map": "/static/css/main.213a05ba.chunk.css.map",
+    "static/js/2.eae4ddee.chunk.js.LICENSE.txt": "/static/js/2.eae4ddee.chunk.js.LICENSE.txt",
+    "static/media/DRii-Logo.png": "/static/media/DRii-Logo.4ff6a810.png",
+    "static/media/Songklanagarin-Hospital-Icon.png": "/static/media/Songklanagarin-Hospital-Icon.3750f4d1.png",
+    "static/media/aot.png": "/static/media/aot.621a351e.png",
+    "static/media/dc.png": "/static/media/dc.7f475b44.png",
+    "static/media/dlt.png": "/static/media/dlt.a3a7e4ad.png",
+    "static/media/drii.png": "/static/media/drii.cb3fa6cc.png",
+    "static/media/logo-songkhla.png": "/static/media/logo-songkhla.7afd0e48.png",
+    "static/media/ppho.png": "/static/media/ppho.96e1f899.png",
+    "static/media/index.css": "/static/media/psu-stidti-regular.3f601ce3.woff",
+    "static/media/train.png": "/static/media/train.c792e71a.png"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.45a42a84.js",
+    "static/css/2.95c16709.chunk.css",
+    "static/js/2.eae4ddee.chunk.js",
+    "static/css/main.213a05ba.chunk.css",
+    "static/js/main.6acd5bd5.chunk.js"
+  ]
+}
